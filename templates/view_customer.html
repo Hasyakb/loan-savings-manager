@@ -1,0 +1,281 @@
+<!-- templates/view_customer.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- Customer Information Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-user-circle"></i> Customer Information</h4>
+            </div>
+            <div class="card-body">
+                <h5>{{ customer.name }}</h5>
+                <p>
+                    <strong><i class="fas fa-phone"></i> Phone:</strong> {{ customer.phone }}<br>
+                    <strong><i class="fas fa-envelope"></i> Email:</strong> {{ customer.email or 'N/A' }}<br>
+                    <strong><i class="fas fa-map-marker-alt"></i> Address:</strong> {{ customer.address or 'N/A' }}<br>
+                    <strong><i class="fas fa-calendar-alt"></i> Registered:</strong> {{ customer.registration_date.strftime('%Y-%m-%d') }}
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('edit_customer', customer_id=customer.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit Customer
+                    </a>
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#proxyModal">
+                        <i class="fas fa-user-check"></i> Proxy Collection
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Financial Summary Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-pie"></i> Financial Summary</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h5 class="text-success">
+                        <i class="fas fa-piggy-bank"></i> Total Savings
+                        <br>₦{{ "%.2f"|format(customer.total_savings()) }}
+                    </h5>
+                    <h5 class="text-danger">
+                        <i class="fas fa-hand-holding-usd"></i> Loan Balance
+                        <br>₦{{ "%.2f"|format(customer.total_loan_balance()) }}
+                    </h5>
+                    <hr>
+                    <h5 class="text-primary">
+                        <i class="fas fa-chart-line"></i> Net Worth
+                        <br>₦{{ "%.2f"|format(customer.total_savings() - customer.total_loan_balance()) }}
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Add Savings Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-plus-circle"></i> Add Savings Transaction</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_saving', customer_id=customer.id) }}" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Transaction Type</label>
+                        <select name="transaction_type" class="form-select" required>
+                            <option value="deposit">Deposit</option>
+                            <option value="withdrawal">Withdraw</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Amount (₦)</label>
+                        <input type="number" name="amount" class="form-control" placeholder="Amount in Naira" step="0.01" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-plus-circle"></i> Add Transaction
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Description (Optional)</label>
+                        <input type="text" name="description" class="form-control" placeholder="Enter description">
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Add Loan Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-hand-holding-usd"></i> Disburse Loan</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_loan', customer_id=customer.id) }}" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Loan Amount (₦)</label>
+                        <input type="number" name="amount" class="form-control" placeholder="Amount in Naira" step="0.01" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-hand-holding-usd"></i> Disburse Loan
+                        </button>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Description (Optional)</label>
+                        <input type="text" name="description" class="form-control" placeholder="Enter loan purpose">
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Active Loans Card -->
+        {% if loans %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-line"></i> Active Loans</h4>
+            </div>
+            <div class="card-body">
+                {% for loan in loans %}
+                <div class="border-bottom mb-3 pb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-money-bill-wave"></i> Loan Amount:</strong> ₦{{ "%.2f"|format(loan.amount) }}<br>
+                            <strong><i class="fas fa-undo-alt"></i> Repaid:</strong> ₦{{ "%.2f"|format(loan.amount_repaid) }}<br>
+                            <strong><i class="fas fa-chart-line"></i> Remaining:</strong> ₦{{ "%.2f"|format(loan.remaining_balance()) }}<br>
+                            {% if loan.description %}
+                            <small class="text-muted">{{ loan.description }}</small><br>
+                            {% endif %}
+                            <small class="text-muted">Loan Date: {{ loan.loan_date.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="POST" action="{{ url_for('repay_loan', customer_id=customer.id) }}">
+                                <input type="hidden" name="loan_id" value="{{ loan.id }}">
+                                <label class="form-label">Payment Amount (₦)</label>
+                                <div class="input-group">
+                                    <input type="number" name="amount" class="form-control" placeholder="Amount" step="0.01" required>
+                                    <select name="payment_method" class="form-select" style="max-width: 150px;">
+                                        <option value="cash">Cash</option>
+                                        <option value="savings_deduction">Use Savings</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Pay
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Savings History Card -->
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-history"></i> Savings History</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for saving in savings_history|reverse %}
+                            <tr>
+                                <td>{{ saving.transaction_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if saving.transaction_type == 'deposit' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-down"></i> Deposit
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-up"></i> Withdrawal
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="{% if saving.transaction_type == 'deposit' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                    ₦{{ "%.2f"|format(saving.amount) }}
+                                </td>
+                                <td>{{ saving.description or '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <i class="fas fa-info-circle"></i> No savings transactions
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Proxy Collection Modal -->
+<div class="modal fade" id="proxyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-check"></i> Proxy Collection for {{ customer.name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('proxy_collection', customer_id=customer.id) }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Collector Name *</label>
+                            <input type="text" name="collector_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Collector Phone</label>
+                            <input type="text" name="collector_phone" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Collection Type *</label>
+                            <select name="collection_type" class="form-select" id="collectionType" required>
+                                <option value="loan">Loan Payment</option>
+                                <option value="saving">Savings Deposit</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Amount (₦) *</label>
+                            <input type="number" name="amount" class="form-control" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="loanSelectDiv" style="display: none;">
+                        <label class="form-label">Select Loan</label>
+                        <select name="loan_id" class="form-select">
+                            {% for loan in loans %}
+                            <option value="{{ loan.id }}">
+                                Loan #{{ loan.id }} - ₦{{ "%.2f"|format(loan.remaining_balance()) }} remaining
+                                {% if loan.description %} - {{ loan.description }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Relationship to Customer</label>
+                        <input type="text" name="relationship" class="form-control" placeholder="e.g., Spouse, Child, Friend, Colleague">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Record Collection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('collectionType').addEventListener('change', function() {
+        var loanDiv = document.getElementById('loanSelectDiv');
+        if (this.value === 'loan') {
+            loanDiv.style.display = 'block';
+        } else {
+            loanDiv.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

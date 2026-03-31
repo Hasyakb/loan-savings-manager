@@ -1,0 +1,49 @@
+<!-- templates/customers.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-users"></i> Customers</h2>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="GET" action="{{ url_for('customers') }}" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search by name or phone" value="{{ search }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('add_customer') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add New Customer
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    {% for customer in customers %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ customer.name }}</h5>
+                <p class="card-text">
+                    <i class="fas fa-phone"></i> {{ customer.phone }}<br>
+                    <i class="fas fa-envelope"></i> {{ customer.email or 'N/A' }}<br>
+                    <i class="fas fa-piggy-bank"></i> Savings: ₦{{ "%.2f"|format(customer.total_savings()) }}<br>
+                    <i class="fas fa-hand-holding-usd"></i> Loan Balance: ₦{{ "%.2f"|format(customer.total_loan_balance()) }}
+                </p>
+                <a href="{{ url_for('view_customer', customer_id=customer.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No customers found.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
