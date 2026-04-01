@@ -12,25 +12,37 @@
     <div class="card-body">
         <form method="GET" action="{{ url_for('proxy_history') }}" class="row g-3">
             <div class="col-md-3">
-                <label class="form-label">Search by Name/Phone</label>
+                <label class="form-label">
+                    <i class="fas fa-search"></i> Search by Name/Phone
+                </label>
                 <input type="text" name="search_name" class="form-control" 
                        placeholder="Collector or Customer" value="{{ search_name }}">
                 <small class="text-muted">Collector name or customer name/phone</small>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Start Date</label>
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i> Start Date
+                </label>
                 <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label">End Date</label>
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i> End Date
+                </label>
                 <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label">Collection Type</label>
+                <label class="form-label">
+                    <i class="fas fa-tag"></i> Collection Type
+                </label>
                 <select name="collection_type" class="form-select">
                     <option value="">All Types</option>
-                    <option value="loan" {% if collection_type == 'loan' %}selected{% endif %}>Loan Payment</option>
-                    <option value="saving" {% if collection_type == 'saving' %}selected{% endif %}>Savings Deposit</option>
+                    <option value="loan" {% if collection_type == 'loan' %}selected{% endif %}>
+                        <i class="fas fa-hand-holding-usd"></i> Loan Payment
+                    </option>
+                    <option value="saving" {% if collection_type == 'saving' %}selected{% endif %}>
+                        <i class="fas fa-piggy-bank"></i> Savings Deposit
+                    </option>
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
@@ -50,22 +62,31 @@
     <div class="col-md-4">
         <div class="stats-card text-center">
             <i class="fas fa-chart-line fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(total_amount) }}</h3>
+            <h3>{{ total_amount|format_currency }}</h3>
             <p>Total Collections</p>
+            <small class="text-white-50">
+                <i class="fas fa-calculator"></i> All collections combined
+            </small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stats-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
             <i class="fas fa-hand-holding-usd fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(loan_collections) }}</h3>
+            <h3>{{ loan_collections|format_currency }}</h3>
             <p>Loan Collections</p>
+            <small class="text-white-50">
+                <i class="fas fa-chart-line"></i> Proxy loan payments
+            </small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stats-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
             <i class="fas fa-piggy-bank fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(saving_collections) }}</h3>
+            <h3>{{ saving_collections|format_currency }}</h3>
             <p>Savings Deposits</p>
+            <small class="text-white-50">
+                <i class="fas fa-plus-circle"></i> Proxy savings deposits
+            </small>
         </div>
     </div>
 </div>
@@ -80,26 +101,33 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Collector</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Relationship</th>
-                        <th>Actions</th>
+                        <th><i class="fas fa-calendar-day"></i> Date & Time</th>
+                        <th><i class="fas fa-user"></i> Customer</th>
+                        <th><i class="fas fa-user-check"></i> Collector</th>
+                        <th><i class="fas fa-tag"></i> Type</th>
+                        <th><i class="fas fa-money-bill-wave"></i> Amount</th>
+                        <th><i class="fas fa-heart"></i> Relationship</th>
+                        <th><i class="fas fa-cog"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for proxy in proxy_collections %}
                     <tr>
-                        <td>{{ proxy.collection_date.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
-                            <strong>{{ proxy.customer.name }}</strong><br>
-                            <small class="text-muted">{{ proxy.customer.phone }}</small>
+                            <strong>{{ proxy.collection_date.strftime('%Y-%m-%d') }}</strong><br>
+                            <small class="text-muted">{{ proxy.collection_date.strftime('%H:%M:%S') }}</small>
                         </td>
                         <td>
-                            {{ proxy.collector_name }}<br>
-                            <small class="text-muted">{{ proxy.collector_phone or 'No phone' }}</small>
+                            <strong>{{ proxy.customer.name }}</strong><br>
+                            <small class="text-muted">
+                                <i class="fas fa-phone"></i> {{ proxy.customer.phone }}
+                            </small>
+                        </td>
+                        <td>
+                            <strong>{{ proxy.collector_name }}</strong><br>
+                            <small class="text-muted">
+                                <i class="fas fa-phone"></i> {{ proxy.collector_phone or 'No phone' }}
+                            </small>
                         </td>
                         <td>
                             {% if proxy.collection_type == 'loan' %}
@@ -112,8 +140,18 @@
                                 </span>
                             {% endif %}
                         </td>
-                        <td class="fw-bold text-primary">₦{{ "%.2f"|format(proxy.amount) }}</td>
-                        <td>{{ proxy.relationship or '-' }}</td>
+                        <td class="fw-bold text-primary">
+                            {{ proxy.amount|format_currency }}
+                        </td>
+                        <td>
+                            {% if proxy.relationship %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-users"></i> {{ proxy.relationship }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <a href="{{ url_for('view_proxy_details', proxy_id=proxy.id) }}" 
                                class="btn btn-sm btn-info">
@@ -123,8 +161,13 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center">
-                            <i class="fas fa-info-circle"></i> No proxy collections found
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-info-circle fa-3x mb-3 text-muted"></i><br>
+                            <h5>No proxy collections found</h5>
+                            <p class="text-muted">Try adjusting your filters or add a new proxy collection from a customer's profile.</p>
+                            <a href="{{ url_for('customers') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-users"></i> View Customers
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -133,10 +176,81 @@
         </div>
         
         {% if proxy_collections %}
-        <div class="mt-3 text-muted">
-            <small><i class="fas fa-chart-line"></i> Total Records: {{ proxy_collections|length }}</small>
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+            <div class="text-muted">
+                <i class="fas fa-chart-line"></i> Total Records: 
+                <strong>{{ proxy_collections|length|format_number }}</strong>
+            </div>
+            <div class="text-muted">
+                <i class="fas fa-calendar-alt"></i> 
+                {% if start_date or end_date %}
+                    Filtered results
+                {% else %}
+                    Showing all records
+                {% endif %}
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Quick Statistics Card (if data exists) -->
+{% if proxy_collections %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5><i class="fas fa-chart-bar"></i> Quick Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h6><i class="fas fa-chart-line"></i> Average Collection</h6>
+                    <h4 class="text-primary">
+                        {{ (total_amount / proxy_collections|length)|format_currency }}
+                    </h4>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h6><i class="fas fa-hand-holding-usd"></i> Largest Loan Collection</h6>
+                    <h4 class="text-primary">
+                        {% set max_loan = proxy_collections|selectattr('collection_type', 'equalto', 'loan')|map(attribute='amount')|max %}
+                        {% if max_loan %}
+                            {{ max_loan|format_currency }}
+                        {% else %}
+                            ₦0.00
+                        {% endif %}
+                    </h4>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h6><i class="fas fa-piggy-bank"></i> Largest Savings Deposit</h6>
+                    <h4 class="text-primary">
+                        {% set max_saving = proxy_collections|selectattr('collection_type', 'equalto', 'saving')|map(attribute='amount')|max %}
+                        {% if max_saving %}
+                            {{ max_saving|format_currency }}
+                        {% else %}
+                            ₦0.00
+                        {% endif %}
+                    </h4>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h6><i class="fas fa-calendar-week"></i> Most Active Month</h6>
+                    <h4 class="text-primary">
+                        {% set months = proxy_collections|groupby('collection_date.strftime("%Y-%m")') %}
+                        {% if months %}
+                            {{ months|max(attribute='list|length')|first }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -8,28 +8,28 @@
     <div class="col-md-3">
         <div class="stats-card text-center">
             <i class="fas fa-users fa-3x mb-2"></i>
-            <h3>{{ total_customers }}</h3>
+            <h3>{{ total_customers|format_number }}</h3>
             <p>Total Customers</p>
         </div>
     </div>
     <div class="col-md-3">
         <div class="stats-card text-center">
             <i class="fas fa-piggy-bank fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(total_savings) }}</h3>
+            <h3>{{ total_savings|format_currency }}</h3>
             <p>Total Savings</p>
         </div>
     </div>
     <div class="col-md-3">
         <div class="stats-card text-center">
             <i class="fas fa-hand-holding-usd fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(total_loans_outstanding) }}</h3>
+            <h3>{{ total_loans_outstanding|format_currency }}</h3>
             <p>Outstanding Loans</p>
         </div>
     </div>
     <div class="col-md-3">
         <div class="stats-card text-center">
             <i class="fas fa-chart-line fa-3x mb-2"></i>
-            <h3>{{ active_loans }}</h3>
+            <h3>{{ active_loans|format_number }}</h3>
             <p>Active Loans</p>
         </div>
     </div>
@@ -56,7 +56,7 @@
                         <i class="fas fa-check-circle text-success"></i> Option to use savings for loan repayment
                     </li>
                     <li class="list-group-item">
-                        <i class="fas fa-check-circle text-success"></i> Real-time balance tracking in ₦
+                        <i class="fas fa-check-circle text-success"></i> Real-time balance tracking with formatted numbers
                     </li>
                 </ul>
             </div>

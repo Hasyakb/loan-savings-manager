@@ -12,25 +12,37 @@
     <div class="card-body">
         <form method="GET" action="{{ url_for('savings_history') }}" class="row g-3">
             <div class="col-md-3">
-                <label class="form-label">Customer Name</label>
+                <label class="form-label">
+                    <i class="fas fa-user"></i> Customer Name
+                </label>
                 <input type="text" name="search_name" class="form-control" 
                        placeholder="Search by customer name" value="{{ search_name }}">
-                <small class="text-muted">Enter customer name</small>
+                <small class="text-muted">Enter customer name to filter</small>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Start Date</label>
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i> Start Date
+                </label>
                 <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label">End Date</label>
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i> End Date
+                </label>
                 <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label">Transaction Type</label>
+                <label class="form-label">
+                    <i class="fas fa-exchange-alt"></i> Transaction Type
+                </label>
                 <select name="transaction_type" class="form-select">
                     <option value="">All Types</option>
-                    <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>Deposit</option>
-                    <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>Withdrawal</option>
+                    <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>
+                        <i class="fas fa-arrow-down"></i> Deposit
+                    </option>
+                    <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>
+                        <i class="fas fa-arrow-up"></i> Withdrawal
+                    </option>
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
@@ -50,22 +62,31 @@
     <div class="col-md-4">
         <div class="stats-card text-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
             <i class="fas fa-arrow-down fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(total_deposits) }}</h3>
+            <h3>{{ total_deposits|format_currency }}</h3>
             <p>Total Deposits</p>
+            <small class="text-white-50">
+                <i class="fas fa-chart-line"></i> All deposits combined
+            </small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stats-card text-center" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
             <i class="fas fa-arrow-up fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(total_withdrawals) }}</h3>
+            <h3>{{ total_withdrawals|format_currency }}</h3>
             <p>Total Withdrawals</p>
+            <small class="text-white-50">
+                <i class="fas fa-chart-line"></i> All withdrawals combined
+            </small>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stats-card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <i class="fas fa-chart-line fa-3x mb-2"></i>
-            <h3>₦{{ "%.2f"|format(net_savings) }}</h3>
+            <h3>{{ net_savings|format_currency }}</h3>
             <p>Net Savings</p>
+            <small class="text-white-50">
+                <i class="fas fa-calculator"></i> Deposits - Withdrawals
+            </small>
         </div>
     </div>
 </div>
@@ -80,22 +101,27 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Date & Time</th>
-                        <th>Customer</th>
-                        <th>Phone</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Description</th>
+                        <th><i class="fas fa-calendar-day"></i> Date & Time</th>
+                        <th><i class="fas fa-user"></i> Customer</th>
+                        <th><i class="fas fa-phone"></i> Phone</th>
+                        <th><i class="fas fa-exchange-alt"></i> Type</th>
+                        <th><i class="fas fa-money-bill-wave"></i> Amount</th>
+                        <th><i class="fas fa-align-left"></i> Description</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for saving in savings %}
                     <tr>
-                        <td>{{ saving.transaction_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            <strong>{{ saving.transaction_date.strftime('%Y-%m-%d') }}</strong><br>
+                            <small class="text-muted">{{ saving.transaction_date.strftime('%H:%M:%S') }}</small>
+                        </td>
                         <td>
                             <strong>{{ saving.customer.name }}</strong>
                         </td>
-                        <td>{{ saving.customer.phone }}</td>
+                        <td>
+                            <small class="text-muted">{{ saving.customer.phone }}</small>
+                        </td>
                         <td>
                             {% if saving.transaction_type == 'deposit' %}
                                 <span class="badge bg-success">
@@ -108,22 +134,31 @@
                             {% endif %}
                         </td>
                         <td class="fw-bold {% if saving.transaction_type == 'deposit' %}text-success{% else %}text-danger{% endif %}">
-                            ₦{{ "%.2f"|format(saving.amount) }}
+                            {{ saving.amount|format_currency }}
                         </td>
                         <td>
                             {{ saving.description or '-' }}
                             {% if 'Proxy collection' in saving.description %}
-                                <br><small class="text-muted"><i class="fas fa-user-check"></i> Proxy Collection</small>
+                                <br><small class="text-info">
+                                    <i class="fas fa-user-check"></i> Proxy Collection
+                                </small>
+                            {% endif %}
+                            {% if 'Loan payment deduction' in saving.description %}
+                                <br><small class="text-warning">
+                                    <i class="fas fa-hand-holding-usd"></i> Loan Payment
+                                </small>
                             {% endif %}
                         </td>
                     </tr>
                     {% else %}
                     <tr>
                         <td colspan="6" class="text-center py-5">
-                            <i class="fas fa-info-circle fa-2x mb-2 d-block"></i>
-                            No savings transactions found
-                            <br>
-                            <small class="text-muted">Try adjusting your filters or add new transactions</small>
+                            <i class="fas fa-info-circle fa-3x mb-3 text-muted"></i><br>
+                            <h5>No savings transactions found</h5>
+                            <p class="text-muted">Try adjusting your filters or add a new savings transaction from a customer's profile.</p>
+                            <a href="{{ url_for('customers') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-users"></i> View Customers
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -134,10 +169,16 @@
         {% if savings %}
         <div class="mt-3 d-flex justify-content-between align-items-center">
             <div class="text-muted">
-                <small><i class="fas fa-chart-line"></i> Total Records: {{ savings|length }}</small>
+                <i class="fas fa-chart-line"></i> Total Records: 
+                <strong>{{ savings|length|format_number }}</strong>
             </div>
             <div class="text-muted">
-                <small><i class="fas fa-calendar-alt"></i> Showing transactions from filtered results</small>
+                <i class="fas fa-calendar-alt"></i> 
+                {% if start_date or end_date or search_name or transaction_type %}
+                    Filtered results
+                {% else %}
+                    Showing all records
+                {% endif %}
             </div>
         </div>
         {% endif %}
@@ -151,39 +192,74 @@
         <h5><i class="fas fa-chart-bar"></i> Quick Statistics</h5>
     </div>
     <div class="card-body">
+        {% set deposit_count = savings|selectattr('transaction_type', 'equalto', 'deposit')|list|length %}
+        {% set withdrawal_count = savings|selectattr('transaction_type', 'equalto', 'withdrawal')|list|length %}
+        
         <div class="row">
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
-                    <h6>Average Deposit</h6>
-                    {% set deposit_count = savings|selectattr('transaction_type', 'equalto', 'deposit')|list|length %}
+                    <h6><i class="fas fa-chart-line"></i> Average Deposit</h6>
                     {% if deposit_count > 0 %}
-                        <h4 class="text-success">₦{{ "%.2f"|format(total_deposits / deposit_count) }}</h4>
+                        <h4 class="text-success">
+                            {{ (total_deposits / deposit_count)|format_currency }}
+                        </h4>
+                        <small class="text-muted">{{ deposit_count|format_number }} transactions</small>
                     {% else %}
                         <h4 class="text-muted">N/A</h4>
+                        <small class="text-muted">No deposits</small>
                     {% endif %}
                 </div>
             </div>
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
-                    <h6>Average Withdrawal</h6>
-                    {% set withdrawal_count = savings|selectattr('transaction_type', 'equalto', 'withdrawal')|list|length %}
+                    <h6><i class="fas fa-chart-line"></i> Average Withdrawal</h6>
                     {% if withdrawal_count > 0 %}
-                        <h4 class="text-danger">₦{{ "%.2f"|format(total_withdrawals / withdrawal_count) }}</h4>
+                        <h4 class="text-danger">
+                            {{ (total_withdrawals / withdrawal_count)|format_currency }}
+                        </h4>
+                        <small class="text-muted">{{ withdrawal_count|format_number }} transactions</small>
                     {% else %}
                         <h4 class="text-muted">N/A</h4>
+                        <small class="text-muted">No withdrawals</small>
                     {% endif %}
                 </div>
             </div>
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
-                    <h6>Deposit Count</h6>
-                    <h4 class="text-success">{{ deposit_count }}</h4>
+                    <h6><i class="fas fa-arrow-down"></i> Deposit Count</h6>
+                    <h4 class="text-success">{{ deposit_count|format_number }}</h4>
+                    <small class="text-muted">Total deposits</small>
                 </div>
             </div>
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
-                    <h6>Withdrawal Count</h6>
-                    <h4 class="text-danger">{{ withdrawal_count }}</h4>
+                    <h6><i class="fas fa-arrow-up"></i> Withdrawal Count</h6>
+                    <h4 class="text-danger">{{ withdrawal_count|format_number }}</h4>
+                    <small class="text-muted">Total withdrawals</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6 text-center">
+                <div class="border rounded p-3">
+                    <h6><i class="fas fa-calendar-week"></i> Most Active Day</h6>
+                    {% set days = savings|groupby('transaction_date.strftime("%Y-%m-%d")') %}
+                    {% if days %}
+                        {% set most_active = days|max(attribute='list|length') %}
+                        <h4 class="text-primary">{{ most_active.first }}</h4>
+                        <small class="text-muted">{{ most_active.list|length|format_number }} transactions</small>
+                    {% else %}
+                        <h4 class="text-muted">N/A</h4>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 text-center">
+                <div class="border rounded p-3">
+                    <h6><i class="fas fa-chart-line"></i> Largest Transaction</h6>
+                    {% set max_transaction = savings|map(attribute='amount')|max %}
+                    <h4 class="text-primary">{{ max_transaction|format_currency }}</h4>
+                    <small class="text-muted">Highest single transaction</small>
                 </div>
             </div>
         </div>
