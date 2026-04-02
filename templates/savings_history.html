@@ -115,13 +115,13 @@
                         <td>
                             <strong>{{ saving.transaction_date.strftime('%Y-%m-%d') }}</strong><br>
                             <small class="text-muted">{{ saving.transaction_date.strftime('%H:%M:%S') }}</small>
-                        </td>
+                        </d>
                         <td>
                             <strong>{{ saving.customer.name }}</strong>
-                        </td>
+                        </d>
                         <td>
                             <small class="text-muted">{{ saving.customer.phone }}</small>
-                        </td>
+                        </d>
                         <td>
                             {% if saving.transaction_type == 'deposit' %}
                                 <span class="badge bg-success">
@@ -132,10 +132,10 @@
                                     <i class="fas fa-minus-circle"></i> Withdrawal
                                 </span>
                             {% endif %}
-                        </td>
+                        </d>
                         <td class="fw-bold {% if saving.transaction_type == 'deposit' %}text-success{% else %}text-danger{% endif %}">
                             {{ saving.amount|format_currency }}
-                        </td>
+                        </d>
                         <td>
                             {{ saving.description or '-' }}
                             {% if 'Proxy collection' in saving.description %}
@@ -148,7 +148,7 @@
                                     <i class="fas fa-hand-holding-usd"></i> Loan Payment
                                 </small>
                             {% endif %}
-                        </td>
+                        </d>
                     </tr>
                     {% else %}
                     <tr>
@@ -159,7 +159,7 @@
                             <a href="{{ url_for('customers') }}" class="btn btn-primary mt-2">
                                 <i class="fas fa-users"></i> View Customers
                             </a>
-                        </td>
+                        </d>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -244,11 +244,19 @@
             <div class="col-md-6 text-center">
                 <div class="border rounded p-3">
                     <h6><i class="fas fa-calendar-week"></i> Most Active Day</h6>
-                    {% set days = savings|groupby('transaction_date.strftime("%Y-%m-%d")') %}
-                    {% if days %}
-                        {% set most_active = days|max(attribute='list|length') %}
-                        <h4 class="text-primary">{{ most_active.first }}</h4>
-                        <small class="text-muted">{{ most_active.list|length|format_number }} transactions</small>
+                    {% if savings %}
+                        {% set date_counts = {} %}
+                        {% for saving in savings %}
+                            {% set date_key = saving.transaction_date.strftime('%Y-%m-%d') %}
+                            {% if date_counts.update({date_key: date_counts.get(date_key, 0) + 1}) %}{% endif %}
+                        {% endfor %}
+                        {% if date_counts %}
+                            {% set most_active_date = date_counts|sort(attribute='1', reverse=True)|first %}
+                            <h4 class="text-primary">{{ most_active_date[0] }}</h4>
+                            <small class="text-muted">{{ most_active_date[1] }} transactions</small>
+                        {% else %}
+                            <h4 class="text-muted">N/A</h4>
+                        {% endif %}
                     {% else %}
                         <h4 class="text-muted">N/A</h4>
                     {% endif %}
@@ -257,9 +265,13 @@
             <div class="col-md-6 text-center">
                 <div class="border rounded p-3">
                     <h6><i class="fas fa-chart-line"></i> Largest Transaction</h6>
-                    {% set max_transaction = savings|map(attribute='amount')|max %}
-                    <h4 class="text-primary">{{ max_transaction|format_currency }}</h4>
-                    <small class="text-muted">Highest single transaction</small>
+                    {% if savings %}
+                        {% set max_transaction = savings|map(attribute='amount')|max %}
+                        <h4 class="text-primary">{{ max_transaction|format_currency }}</h4>
+                        <small class="text-muted">Highest single transaction</small>
+                    {% else %}
+                        <h4 class="text-muted">N/A</h4>
+                    {% endif %}
                 </div>
             </div>
         </div>
