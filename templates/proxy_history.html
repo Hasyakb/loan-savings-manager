@@ -116,19 +116,19 @@
                         <td>
                             <strong>{{ proxy.collection_date.strftime('%Y-%m-%d') }}</strong><br>
                             <small class="text-muted">{{ proxy.collection_date.strftime('%H:%M:%S') }}</small>
-                        </td>
+                        </d>
                         <td>
                             <strong>{{ proxy.customer.name }}</strong><br>
                             <small class="text-muted">
                                 <i class="fas fa-phone"></i> {{ proxy.customer.phone }}
                             </small>
-                        </td>
+                        </d>
                         <td>
                             <strong>{{ proxy.collector_name }}</strong><br>
                             <small class="text-muted">
                                 <i class="fas fa-phone"></i> {{ proxy.collector_phone or 'No phone' }}
                             </small>
-                        </td>
+                        </d>
                         <td>
                             {% if proxy.collection_type == 'loan' %}
                                 <span class="badge bg-primary">
@@ -139,10 +139,10 @@
                                     <i class="fas fa-piggy-bank"></i> Savings Deposit
                                 </span>
                             {% endif %}
-                        </td>
+                        </d>
                         <td class="fw-bold text-primary">
                             {{ proxy.amount|format_currency }}
-                        </td>
+                        </d>
                         <td>
                             {% if proxy.relationship %}
                                 <span class="badge bg-info">
@@ -151,13 +151,13 @@
                             {% else %}
                                 <span class="text-muted">Not specified</span>
                             {% endif %}
-                        </td>
+                        </d>
                         <td>
                             <a href="{{ url_for('view_proxy_details', proxy_id=proxy.id) }}" 
                                class="btn btn-sm btn-info">
                                 <i class="fas fa-eye"></i> Details
                             </a>
-                        </td>
+                        </d>
                     </tr>
                     {% else %}
                     <tr>
@@ -168,7 +168,7 @@
                             <a href="{{ url_for('customers') }}" class="btn btn-primary mt-2">
                                 <i class="fas fa-users"></i> View Customers
                             </a>
-                        </td>
+                        </d>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -183,7 +183,7 @@
             </div>
             <div class="text-muted">
                 <i class="fas fa-calendar-alt"></i> 
-                {% if start_date or end_date %}
+                {% if start_date or end_date or search_name or collection_type %}
                     Filtered results
                 {% else %}
                     Showing all records
@@ -213,40 +213,48 @@
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
                     <h6><i class="fas fa-hand-holding-usd"></i> Largest Loan Collection</h6>
-                    <h4 class="text-primary">
-                        {% set max_loan = proxy_collections|selectattr('collection_type', 'equalto', 'loan')|map(attribute='amount')|max %}
-                        {% if max_loan %}
+                    {% set max_loan = proxy_collections|selectattr('collection_type', 'equalto', 'loan')|map(attribute='amount')|max %}
+                    {% if max_loan %}
+                        <h4 class="text-primary">
                             {{ max_loan|format_currency }}
-                        {% else %}
-                            ₦0.00
-                        {% endif %}
-                    </h4>
+                        </h4>
+                    {% else %}
+                        <h4 class="text-muted">₦0.00</h4>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
                     <h6><i class="fas fa-piggy-bank"></i> Largest Savings Deposit</h6>
-                    <h4 class="text-primary">
-                        {% set max_saving = proxy_collections|selectattr('collection_type', 'equalto', 'saving')|map(attribute='amount')|max %}
-                        {% if max_saving %}
+                    {% set max_saving = proxy_collections|selectattr('collection_type', 'equalto', 'saving')|map(attribute='amount')|max %}
+                    {% if max_saving %}
+                        <h4 class="text-primary">
                             {{ max_saving|format_currency }}
-                        {% else %}
-                            ₦0.00
-                        {% endif %}
-                    </h4>
+                        </h4>
+                    {% else %}
+                        <h4 class="text-muted">₦0.00</h4>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-3 text-center">
                 <div class="border rounded p-3">
                     <h6><i class="fas fa-calendar-week"></i> Most Active Month</h6>
-                    <h4 class="text-primary">
-                        {% set months = proxy_collections|groupby('collection_date.strftime("%Y-%m")') %}
-                        {% if months %}
-                            {{ months|max(attribute='list|length')|first }}
+                    {% if proxy_collections %}
+                        {% set month_counts = {} %}
+                        {% for proxy in proxy_collections %}
+                            {% set month_key = proxy.collection_date.strftime('%Y-%m') %}
+                            {% if month_counts.update({month_key: month_counts.get(month_key, 0) + 1}) %}{% endif %}
+                        {% endfor %}
+                        {% if month_counts %}
+                            {% set most_active_month = month_counts|sort(attribute='1', reverse=True)|first %}
+                            <h4 class="text-primary">{{ most_active_month[0] }}</h4>
+                            <small class="text-muted">{{ most_active_month[1] }} collections</small>
                         {% else %}
-                            N/A
+                            <h4 class="text-muted">N/A</h4>
                         {% endif %}
-                    </h4>
+                    {% else %}
+                        <h4 class="text-muted">N/A</h4>
+                    {% endif %}
                 </div>
             </div>
         </div>
